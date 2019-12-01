@@ -1,4 +1,5 @@
 'use strict';
+let sceneTexture;
 
 function main() {
     // Get A WebGL context
@@ -17,6 +18,42 @@ function main() {
     // setup GLSL programs
     const textureProgramInfo = webglUtils.createProgramInfo(gl, ['3d-vertex-shader', '3d-fragment-shader']);
     const colorProgramInfo = webglUtils.createProgramInfo(gl, ['color-vertex-shader', 'color-fragment-shader']);
+
+    sceneTexture  = initTexture('texture.jpg');
+    function initTexture(url) {
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const width = 1;
+        const height = 1;
+        const border = 0;
+        const srcFormat = gl.RGBA;
+        const srcType = gl.UNSIGNED_BYTE;
+        const pixel = new Uint8Array([255, 255, 255, 255]);
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+            width, height, border, srcFormat, srcType,
+            pixel);
+
+        const image = new Image();
+        image.onload = function() {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                srcFormat, srcType, image);
+            if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+                gl.generateMipmap(gl.TEXTURE_2D);
+            } else {
+                // Размер не соответствует степени 2.
+                // Отключаем MIP'ы и устанавливаем натяжение по краям
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            }
+        };
+        image.src = url;
+        return texture;
+    }
+
 
     const sphereBufferInfo = primitives.createSphereBufferInfo(
         gl,
@@ -88,14 +125,14 @@ function main() {
         gl.LUMINANCE,     // format
         gl.UNSIGNED_BYTE, // type
         new Uint8Array([  // data
-            0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
-            0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
-            0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
-            0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
-            0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
-            0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
-            0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC,
-            0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF, 0xCC, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         ]));
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -132,7 +169,7 @@ function main() {
         cameraX: 6,
         cameraY: 5,
         posX: 3,
-        posY: 5,
+        posY: 8,
         posZ: 5,
         targetX: 2.5,
         targetY: 0,
@@ -165,35 +202,10 @@ function main() {
     const planeUniforms = {
         u_colorMult: [1, 1, 1, 1],  // lightblue
         u_color: [1, 0, 0, 1],
-        u_texture: checkerboardTexture,
-        u_world: m4.scale(m4.translation(0, 1, 0), 5, 0.7, 5),
+        u_texture: sceneTexture,
+        u_world: m4.scale(m4.translation(0, 1, 0), 4, 0.7, 4),
     };
-    // const sphereUniforms = {
-    //     u_colorMult: [0.8, 0.8, 0.8, 1],  // pink
-    //     u_color: [0, 0, 1, 1],
-    //     u_texture: checkerboardTexture,
-    //     u_world: m4.scale(m4.translation(0.15, 2.29, 2.7), 0.8, 0.8, 0.8),
-    // };
-    // const cubeUniforms = {
-    //     u_colorMult: [204 /255, 0, 102 / 255, 1],  // lightgreen
-    //     u_color: [0, 0, 1, 1],
-    //     u_texture: checkerboardTexture,
-    //     u_world: m4.scale(m4.translation(5, 2, 0),0.2, 0.2, 0.2),
-    // };
 
-    // const coneUniforms = {
-    //     u_colorMult: [44 / 255, 185 / 255, 1, 1],  // lightgreen
-    //     u_color: [0, 0, 1, 1],
-    //     u_texture: checkerboardTexture,
-    //     u_world: m4.scale(m4.translation(5, 2, 2),0.2, 0.4, 0.2),
-    // };
-
-    // const smallSphereUniforms = {
-    //     u_colorMult: [1, 1, 0, 1],  // lightgreen
-    //     u_color: [0, 0, 1, 1],
-    //     u_texture: checkerboardTexture,
-    //     u_world: m4.scale(m4.translation(5, 2, 3),0.2, 0.2, 0.2),
-    // };
 
     function drawScene(
         projectionMatrix,
@@ -231,10 +243,10 @@ function main() {
         // Set the uniforms unique to the sphere
         webglUtils.setUniforms(programInfo,
             {
-                u_colorMult: [0.8, 0.8, 0.8, 1],  // pink
+                u_colorMult: [0.043, 0.42, 0.35, 1],  // pink
                 u_color: [0, 0, 1, 1],
                 u_texture: checkerboardTexture,
-                u_world: m4.scale(m4.translation(0, 2.29, 0), 0.8, 0.8, 0.8),});
+                u_world: m4.scale(m4.translation(0, 2.3, 0), 1, 1, 1),});
 
         // calls gl.drawArrays or gl.drawElements
         webglUtils.drawBufferInfo(gl, sphereBufferInfo);
@@ -243,16 +255,6 @@ function main() {
         // Setup all the needed attributes.
         webglUtils.setBuffersAndAttributes(gl, programInfo, sphereBufferInfo);
 
-        // Set the uniforms unique to the sphere
-        // webglUtils.setUniforms(programInfo,
-        //     {
-        //         u_colorMult: [0.8, 0.8, 0.8, 1],  // pink
-        //         u_color: [0, 0, 1, 1],
-        //         u_texture: checkerboardTexture,
-        //         u_world: m4.scale(m4.translation(0.1, 2.29, -2.6), 0.8, 0.8, 0.8),});
-        //
-        // // calls gl.drawArrays or gl.drawElements
-        // webglUtils.drawBufferInfo(gl, sphereBufferInfo);
 
         // ------ Draw the plane --------
 
@@ -266,48 +268,36 @@ function main() {
         webglUtils.drawBufferInfo(gl, planeBufferInfo);
 
         // ------ Draw the cone --------
-        let radius = 4;
-        let centerX = 0;
-        let smallRadius = 0.2;
-        let centerY = 1.6;
-        let centerZ = 0;
-        for (let i = 0; i < 2*Math.PI; i += 0.1){
-            centerX = radius * Math.cos(i);
-            centerZ = radius * Math.sin(i);
-            // centerX = Math.sin(2 * i);
-            // centerZ = radius * Math.cos(i);
-            // Setup all the needed attributes.
+        let radius = 3.5;
+        let smallRadius = 0.3;
+        let n = 5;
+        let centerX;
+        let centerY;
+        let centerZ;
+        for (let i = 0; i < 2*Math.PI; i += 0.06){
+            centerX = (radius + smallRadius * Math.cos(n * i)) * Math.cos(i + 2);
+            centerY = (smallRadius * Math.sin(n * i)) ;
+            centerZ = (radius + smallRadius * Math.cos(n * i)) * Math.sin(i + 2);
+
             webglUtils.setBuffersAndAttributes(gl, programInfo, coneBufferInfo);
             // Set the uniforms unique to the cube
             webglUtils.setUniforms(programInfo, {
                 u_colorMult: [44 / 255, 185 / 255, 1, 1],  // lightgreen
                 u_color: [0, 0, 1, 1],
                 u_texture: checkerboardTexture,
-                u_world: m4.scale(m4.translation(centerX, centerY+2, centerZ),0.1, 0.3, 0.1),});
+                u_world: m4.scale(m4.axisRotate(m4.translation(centerX, centerY+1.85, centerZ), [1, 1, 0],   i), 0.1, 0.4, 0.1),});
             // calls gl.drawArrays or gl.drawElements
             webglUtils.drawBufferInfo(gl, coneBufferInfo);
         }
 
         // ------ Draw the cube --------
         // centerY = 3;
-        radius = 4;
 
-        for ( let i = 0; i < 2 * Math.PI; i += 0.1) {
-            centerX = radius * Math.cos(i);
-            centerZ = radius * Math.sin(i);
-            // centerX = smallRadius * 1.5 * (16 * Math.sin(i) * Math.sin(i) * Math.sin(i));
-            // centerZ = smallRadius* 1.5 *(13 * Math.cos(i) - 5 * Math.cos(2*i) - 2 * Math.cos(3*i) - Math.cos(4*i));
-            // centerY = Math.cos(i);
-            // for (let k = -Math.PI; k <  Math.PI; k += 0.3) {
-            //     // centerX = (1 + smallRadius* Math.cos(k)) * i * Math.cos(6 * i);
-            //     // centerY = (1 + smallRadius * Math.cos(k)) * i * Math.sin(6 * i);
-            //     // centerZ = i;
-            //     // Setup all the needed attributes.
-            // }
-            // centerX = (0.5 + smallRadius * Math.cos(i)) * Math.cos(i);
-            // centerY = (0.5 + smallRadius * Math.cos(i)) * Math.sin(i);
-            // centerZ = Math.sin(i) + i;
-            // centerZ = Math.sin(k) + i;
+        for ( let i = 0; i < 2 * Math.PI; i += 0.07) {
+            centerX = (radius + smallRadius * Math.cos(n * i)) * Math.cos(i);
+            centerY = (smallRadius * Math.sin(n * i)) ;
+            centerZ = (radius + smallRadius * Math.cos(n * i)) * Math.sin(i);
+
             webglUtils.setBuffersAndAttributes(gl, programInfo, cubeBufferInfo);
 
             // Set the uniforms unique to the cube
@@ -315,12 +305,10 @@ function main() {
                 u_colorMult: [204 / 255, 0, 102 / 255, 1],  // lightgreen
                 u_color: [0, 0, 1, 1],
                 u_texture: checkerboardTexture,
-                u_world: m4.axisRotate((m4.scale(m4.translation(centerX, centerY+1, centerZ+0.2), 0.1, 0.1, 0.1)), [1, 0, 1], i * degToRad(45)),
+                u_world: m4.axisRotate((m4.scale(m4.translation(centerX, centerY+1.85, centerZ), 0.1, 0.1, 0.1)), [1, 0, 1], i),
             });
-
             // calls gl.drawArrays or gl.drawElements
             webglUtils.drawBufferInfo(gl, cubeBufferInfo);
-
         }
 
 
@@ -328,19 +316,17 @@ function main() {
         // ------ Draw the smallSphere --------
         // Setup all the needed attributes.
         centerY = 2;
-        for (let i = 0; i < 2*Math.PI; i += 0.15){
-            // centerX = smallRadius* (Math.cos(i) + i * Math.sin(i));
-            // centerZ = smallRadius * (Math.sin(i) - i * Math.cos(i));
-            // centerY = Math.sin(i) * i * 0.1;
-            centerX = radius * Math.cos(i);
-            centerZ = radius * Math.sin(i);
+        for (let i = 0; i < 2*Math.PI; i += 0.085){
+            centerX = (radius + smallRadius * Math.cos(n * i)) * Math.cos(i+1);
+            centerY = (smallRadius * Math.sin(n * i)) ;
+            centerZ = (radius + smallRadius * Math.cos(n * i)) * Math.sin(i+1);
             webglUtils.setBuffersAndAttributes(gl, programInfo, sphereBufferInfo);
             // Set the uniforms unique to the cube
             webglUtils.setUniforms(programInfo, {
                 u_colorMult: [1, 1, 0, 1],  // lightgreen
                 u_color: [0, 0, 1, 1],
                 u_texture: checkerboardTexture,
-                u_world: m4.scale(m4.translation(centerX, centerY+2.5, centerZ), 0.1, 0.1, 0.1),});
+                u_world: m4.scale(m4.translation(centerX, centerY+1.9, centerZ), 0.15, 0.15, 0.15),});
             // calls gl.drawArrays or gl.drawElements
             webglUtils.drawBufferInfo(gl, sphereBufferInfo);
         }
