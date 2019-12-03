@@ -186,14 +186,14 @@ function main() {
         { type: 'slider',   key: 'posX',       min: -10, max: 10, change: render, precision: 2, step: 0.001, },
         { type: 'slider',   key: 'posY',       min:   1, max: 20, change: render, precision: 2, step: 0.001, },
         { type: 'slider',   key: 'posZ',       min:   1, max: 20, change: render, precision: 2, step: 0.001, },
-        { type: 'slider',   key: 'targetX',    min: -10, max: 10, change: render, precision: 2, step: 0.001, },
-        { type: 'slider',   key: 'targetY',    min:   0, max: 20, change: render, precision: 2, step: 0.001, },
-        { type: 'slider',   key: 'targetZ',    min: -10, max: 20, change: render, precision: 2, step: 0.001, },
+        // { type: 'slider',   key: 'targetX',    min: -10, max: 10, change: render, precision: 2, step: 0.001, },
+        // { type: 'slider',   key: 'targetY',    min:   0, max: 20, change: render, precision: 2, step: 0.001, },
+        // { type: 'slider',   key: 'targetZ',    min: -10, max: 20, change: render, precision: 2, step: 0.001, },
         { type: 'slider',   key: 'projWidth',  min:   0, max:  2, change: render, precision: 2, step: 0.001, },
         { type: 'slider',   key: 'projHeight', min:   0, max:  2, change: render, precision: 2, step: 0.001, },
-        { type: 'checkbox', key: 'perspective', change: render, },
-        { type: 'slider',   key: 'fieldOfView', min:  1, max: 179, change: render, },
-        { type: 'slider',   key: 'bias',       min:  -0.01, max: 0.00001, change: render, precision: 4, step: 0.0001, },
+        // { type: 'checkbox', key: 'perspective', change: render, },
+        // { type: 'slider',   key: 'fieldOfView', min:  1, max: 179, change: render, },
+        // { type: 'slider',   key: 'bias',       min:  -0.01, max: 0.00001, change: render, precision: 4, step: 0.0001, },
     ]);
 
     const fieldOfViewRadians = degToRad(60);
@@ -344,7 +344,7 @@ function main() {
         // first draw from the POV of the light
         const lightWorldMatrix = m4.lookAt(
             [settings.posX, settings.posY, settings.posZ],          // position
-            [settings.targetX, settings.targetY, settings.targetZ], // target
+            [3, 0, 3], // target
             [0, 1, 0],                                              // up
         );
         const lightProjectionMatrix = settings.perspective
@@ -409,31 +409,31 @@ function main() {
             textureProgramInfo);
 
         // ------ Draw the frustum ------
-        {
-            const viewMatrix = m4.inverse(cameraMatrix);
-
-            gl.useProgram(colorProgramInfo.program);
-
-            // Setup all the needed attributes.
-            webglUtils.setBuffersAndAttributes(gl, colorProgramInfo, cubeLinesBufferInfo);
-
-            // scale the cube in Z so it's really long
-            // to represent the texture is being projected to
-            // infinity
-            const mat = m4.multiply(
-                lightWorldMatrix, m4.inverse(lightProjectionMatrix));
-
-            // Set the uniforms we just computed
-            webglUtils.setUniforms(colorProgramInfo, {
-                u_color: [1, 1, 1, 1],
-                u_view: viewMatrix,
-                u_projection: projectionMatrix,
-                u_world: mat,
-            });
-
-            // calls gl.drawArrays or gl.drawElements
-            webglUtils.drawBufferInfo(gl, cubeLinesBufferInfo, gl.LINES);
-        }
+        // {
+        //     const viewMatrix = m4.inverse(cameraMatrix);
+        //
+        //     gl.useProgram(colorProgramInfo.program);
+        //
+        //     // Setup all the needed attributes.
+        //     webglUtils.setBuffersAndAttributes(gl, colorProgramInfo, cubeLinesBufferInfo);
+        //
+        //     // scale the cube in Z so it's really long
+        //     // to represent the texture is being projected to
+        //     // infinity
+        //     const mat = m4.multiply(
+        //         lightWorldMatrix, m4.inverse(lightProjectionMatrix));
+        //
+        //     // Set the uniforms we just computed
+        //     webglUtils.setUniforms(colorProgramInfo, {
+        //         u_color: [1, 1, 1, 1],
+        //         u_view: viewMatrix,
+        //         u_projection: projectionMatrix,
+        //         u_world: mat,
+        //     });
+        //
+        //     // calls gl.drawArrays or gl.drawElements
+        //     webglUtils.drawBufferInfo(gl, cubeLinesBufferInfo, gl.LINES);
+        // }
     }
     render();
 }
